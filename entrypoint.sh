@@ -28,40 +28,6 @@ get_project_type() {
   unset _PROJECT_URL
 }
 
-find_project_id() {
-  _PROJECT_TYPE="$1"
-  _PROJECT_URL="$2"
-
-  case "$_PROJECT_TYPE" in
-    org)
-      _ORG_NAME=$(echo "$_PROJECT_URL" | sed -e 's@https://github.com/orgs/\([^/]\+\)/projects/[0-9]\+@\1@')
-      _ENDPOINT="https://api.github.com/orgs/$_ORG_NAME/projects"
-      ;;
-    user)
-      _USER_NAME=$(echo "$_PROJECT_URL" | sed -e 's@https://github.com/users/\([^/]\+\)/projects/[0-9]\+@\1@')
-      _ENDPOINT="https://api.github.com/users/$_USER_NAME/projects"
-      ;;
-    repo)
-      _ENDPOINT="https://api.github.com/repos/$GITHUB_REPOSITORY/projects"
-      ;;
-  esac
-
-  _PROJECTS=$(curl -s -X GET -u "$GITHUB_ACTOR:$TOKEN" --retry 3 \
-           -H 'Accept: application/vnd.github.inertia-preview+json' \
-           "$_ENDPOINT")
-
-  _PROJECTID=$(echo "$_PROJECTS" | jq -r ".[] | select(.html_url == \"$_PROJECT_URL\").id")
-
-  if [ "$_PROJECTID" != "" ]; then
-    echo "$_PROJECTID"
-  else
-    echo "No project was found." >&2
-    exit 1
-  fi
-
-  unset _PROJECT_TYPE _PROJECT_URL _ORG_NAME _USER_NAME _ENDPOINT _PROJECTS _PROJECTID
-}
-
 find_column_id() {
   _PROJECT_ID="$1"
   _INITIAL_COLUMN_NAME="$2"
@@ -104,7 +70,7 @@ if [ -z "$INITIAL_COLUMN_NAME" ]; then
 fi
 
 
-PROJECT_ID=$(find_project_id "$PROJECT_TYPE" "$PROJECT_URL")
+PROJECT_ID="$INPUT_PROJECT_ID"
 INITIAL_COLUMN_ID=$(find_column_id "$PROJECT_ID" "${INITIAL_COLUMN_NAME:?<Error> required this environment variable}")
 
 if [ -z "$INITIAL_COLUMN_ID" ]; then
