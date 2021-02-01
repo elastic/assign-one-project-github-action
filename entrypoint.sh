@@ -87,8 +87,10 @@ case "$GITHUB_EVENT_NAME" in
      -H 'Accept: application/vnd.github.inertia-preview+json' \
      -d "{\"content_type\": \"Issue\", \"content_id\": $ISSUE_ID}" \
      "https://api.github.com/projects/columns/$INITIAL_COLUMN_ID/cards"
+
+     echo "Added issue to project" >&2
     ;;
-  pull_request)
+  pull_request|pull_request_target)
     PULL_REQUEST_ID=$(jq -r '.pull_request.id' < "$GITHUB_EVENT_PATH")
 
     # Add this pull_request to the project column
@@ -96,6 +98,8 @@ case "$GITHUB_EVENT_NAME" in
      -H 'Accept: application/vnd.github.inertia-preview+json' \
      -d "{\"content_type\": \"PullRequest\", \"content_id\": $PULL_REQUEST_ID}" \
      "https://api.github.com/projects/columns/$INITIAL_COLUMN_ID/cards"
+
+    echo "Added pull request to project" >&2
     ;;
   *)
     echo "Nothing to be done on this action: $GITHUB_EVENT_NAME" >&2
